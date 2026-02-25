@@ -44,6 +44,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { CreateTaskModal } from '@/components/modals/create-task-modal';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -61,6 +62,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const { user, profile, loading, signOut } = useAuth();
   const [expandedProjects, setExpandedProjects] = useState<string[]>([]);
+  const [createTaskOpen, setCreateTaskOpen] = useState(false);
 
   const toggleProject = (projectId: string) => {
     setExpandedProjects((prev) =>
@@ -98,14 +100,14 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       <ScrollArea className="flex-1 px-3 py-4">
         <div className="space-y-4">
           {!isCollapsed && (
-            <Button className="w-full justify-start gap-2">
+            <Button className="w-full justify-start gap-2" onClick={() => setCreateTaskOpen(true)}>
               <Plus className="h-4 w-4" />
               <span>New Task</span>
             </Button>
           )}
 
           {isCollapsed && (
-            <Button size="icon" className="w-full">
+            <Button size="icon" className="w-full" onClick={() => setCreateTaskOpen(true)}>
               <Plus className="h-4 w-4" />
             </Button>
           )}
@@ -397,6 +399,11 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
           </Button>
         </div>
       </div>
+
+      <CreateTaskModal
+        open={createTaskOpen}
+        onOpenChange={setCreateTaskOpen}
+      />
     </div>
   );
 }

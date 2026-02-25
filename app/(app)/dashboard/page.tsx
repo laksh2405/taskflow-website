@@ -60,7 +60,7 @@ export default function DashboardPage() {
     setDataLoading(true);
 
     try {
-      const { data: projectsData } = await supabase
+      const { data: projectsData, error: projectsError } = await supabase
         .from('projects')
         .select(`
           *,
@@ -68,7 +68,11 @@ export default function DashboardPage() {
         `)
         .order('created_at', { ascending: false });
 
-      const { data: tasksData } = await supabase
+      if (projectsError) {
+        console.error('Error loading projects:', projectsError);
+      }
+
+      const { data: tasksData, error: tasksError } = await supabase
         .from('tasks')
         .select(`
           *,
@@ -78,7 +82,11 @@ export default function DashboardPage() {
         .eq('assignee_id', user.id)
         .order('created_at', { ascending: false });
 
-      const { data: activityData } = await supabase
+      if (tasksError) {
+        console.error('Error loading tasks:', tasksError);
+      }
+
+      const { data: activityData, error: activityError } = await supabase
         .from('activity_log')
         .select(`
           *,
@@ -86,6 +94,10 @@ export default function DashboardPage() {
         `)
         .order('created_at', { ascending: false })
         .limit(8);
+
+      if (activityError) {
+        console.error('Error loading activity:', activityError);
+      }
 
       setProjects(projectsData || []);
       setTasks(tasksData || []);
