@@ -27,7 +27,18 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const { data: { user }, error } = await supabase.auth.getUser();
+  let user = null;
+
+  try {
+    const { data: { user: authUser }, error } = await supabase.auth.getUser();
+    user = authUser;
+
+    if (error && error.message !== 'Auth session missing!') {
+      console.error('Auth error in middleware:', error);
+    }
+  } catch (error) {
+    console.error('Unexpected auth error:', error);
+  }
 
   const { pathname } = request.nextUrl;
 
@@ -35,11 +46,6 @@ export async function updateSession(request: NextRequest) {
   const isAuthCallback = pathname.startsWith('/auth/callback');
   const isProtectedRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/projects') || pathname.startsWith('/settings');
   const isPublicRoute = pathname === '/' || pathname.startsWith('/pricing');
-
-  // Log authentication state for debugging
-  if (error) {
-    console.error('Auth error in middleware:', error);
-  }
 
   if (isAuthCallback) {
     console.log('Auth callback detected, allowing through');
