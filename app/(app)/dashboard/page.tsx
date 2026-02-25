@@ -54,7 +54,10 @@ export default function DashboardPage() {
   }, []);
 
   const loadDashboardData = async () => {
-    if (!user) return;
+    if (!user) {
+      setDataLoading(false);
+      return;
+    }
 
     const supabase = createClient() as any;
     setDataLoading(true);
@@ -110,8 +113,10 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    loadDashboardData();
-  }, [user]);
+    if (!loading) {
+      loadDashboardData();
+    }
+  }, [user, loading]);
 
   const totalTasks = tasks.length;
   const inProgressTasks = tasks.filter((t) => t.status === 'in_progress');
@@ -153,7 +158,7 @@ export default function DashboardPage() {
     };
   });
 
-  if (loading || dataLoading) {
+  if (loading) {
     return (
       <div className="p-4 md:p-6 space-y-6">
         <LoadingSkeleton />
@@ -190,7 +195,11 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Tasks</p>
-                <p className="text-3xl font-bold mt-2">{totalTasks}</p>
+                {dataLoading ? (
+                  <div className="h-9 w-12 mt-2 bg-muted animate-pulse rounded" />
+                ) : (
+                  <p className="text-3xl font-bold mt-2">{totalTasks}</p>
+                )}
               </div>
               <div className="h-12 w-12 rounded-full bg-blue-500/10 flex items-center justify-center">
                 <BarChart3 className="h-6 w-6 text-blue-600 dark:text-blue-500" />
@@ -204,10 +213,16 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">In Progress</p>
-                <p className="text-3xl font-bold mt-2">{inProgressTasks.length}</p>
-                <div className="flex items-center gap-1 mt-1">
-                  <div className="h-2 w-2 rounded-full bg-yellow-500" />
-                </div>
+                {dataLoading ? (
+                  <div className="h-9 w-12 mt-2 bg-muted animate-pulse rounded" />
+                ) : (
+                  <>
+                    <p className="text-3xl font-bold mt-2">{inProgressTasks.length}</p>
+                    <div className="flex items-center gap-1 mt-1">
+                      <div className="h-2 w-2 rounded-full bg-yellow-500" />
+                    </div>
+                  </>
+                )}
               </div>
               <div className="h-12 w-12 rounded-full bg-yellow-500/10 flex items-center justify-center">
                 <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-500" />
@@ -221,11 +236,17 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Completed This Week</p>
-                <p className="text-3xl font-bold mt-2">{completedThisWeek}</p>
-                <div className="flex items-center gap-1 mt-1 text-green-600 dark:text-green-500">
-                  <TrendingUp className="h-3 w-3" />
-                  <span className="text-xs font-medium">+12%</span>
-                </div>
+                {dataLoading ? (
+                  <div className="h-9 w-12 mt-2 bg-muted animate-pulse rounded" />
+                ) : (
+                  <>
+                    <p className="text-3xl font-bold mt-2">{completedThisWeek}</p>
+                    <div className="flex items-center gap-1 mt-1 text-green-600 dark:text-green-500">
+                      <TrendingUp className="h-3 w-3" />
+                      <span className="text-xs font-medium">+12%</span>
+                    </div>
+                  </>
+                )}
               </div>
               <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center">
                 <TrendingUp className="h-6 w-6 text-green-600 dark:text-green-500" />
@@ -234,13 +255,17 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {overdueTasks.length > 0 && (
+        {(overdueTasks.length > 0 || dataLoading) && (
           <Card className="bg-gradient-to-br from-background to-muted/20 border-2">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Overdue</p>
-                  <p className="text-3xl font-bold mt-2">{overdueTasks.length}</p>
+                  {dataLoading ? (
+                    <div className="h-9 w-12 mt-2 bg-muted animate-pulse rounded" />
+                  ) : (
+                    <p className="text-3xl font-bold mt-2">{overdueTasks.length}</p>
+                  )}
                 </div>
                 <div className="h-12 w-12 rounded-full bg-red-500/10 flex items-center justify-center">
                   <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-500" />
@@ -272,7 +297,20 @@ export default function DashboardPage() {
           </TabsList>
 
           <TabsContent value="todo" className="space-y-3 mt-4">
-            {todoTasks.slice(0, 5).map((task) => {
+            {dataLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <Card key={i}>
+                    <CardContent className="p-4">
+                      <div className="space-y-2">
+                        <div className="h-5 w-3/4 bg-muted animate-pulse rounded" />
+                        <div className="h-4 w-1/2 bg-muted animate-pulse rounded" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : todoTasks.slice(0, 5).map((task) => {
               const dueDate = formatDueDate(task.due_date);
               const projectName = task.board?.project?.name || 'Unknown Project';
               return (
@@ -300,18 +338,31 @@ export default function DashboardPage() {
                 </Card>
               );
             })}
-            {todoTasks.length > 5 && (
+            {!dataLoading && todoTasks.length > 5 && (
               <Button variant="ghost" className="w-full">
                 Show more ({todoTasks.length - 5} remaining)
               </Button>
             )}
-            {todoTasks.length === 0 && (
+            {!dataLoading && todoTasks.length === 0 && (
               <p className="text-center text-muted-foreground py-8">No tasks to do</p>
             )}
           </TabsContent>
 
           <TabsContent value="progress" className="space-y-3 mt-4">
-            {myInProgressTasks.slice(0, 5).map((task) => {
+            {dataLoading ? (
+              <div className="space-y-3">
+                {[1, 2].map((i) => (
+                  <Card key={i}>
+                    <CardContent className="p-4">
+                      <div className="space-y-2">
+                        <div className="h-5 w-3/4 bg-muted animate-pulse rounded" />
+                        <div className="h-4 w-1/2 bg-muted animate-pulse rounded" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : myInProgressTasks.slice(0, 5).map((task) => {
               const dueDate = formatDueDate(task.due_date);
               const projectName = task.board?.project?.name || 'Unknown Project';
               return (
@@ -339,7 +390,7 @@ export default function DashboardPage() {
                 </Card>
               );
             })}
-            {myInProgressTasks.length === 0 && (
+            {!dataLoading && myInProgressTasks.length === 0 && (
               <p className="text-center text-muted-foreground py-8">No tasks in progress</p>
             )}
           </TabsContent>
@@ -389,7 +440,21 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
-          {projectStats.length === 0 ? (
+          {dataLoading ? (
+            <>
+              {[1, 2].map((i) => (
+                <Card key={i}>
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      <div className="h-6 w-3/4 bg-muted animate-pulse rounded" />
+                      <div className="h-4 w-1/2 bg-muted animate-pulse rounded" />
+                      <div className="h-2 w-full bg-muted animate-pulse rounded" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </>
+          ) : projectStats.length === 0 ? (
             <div className="col-span-2 text-center py-12">
               <p className="text-muted-foreground mb-4">No projects yet</p>
               <Button onClick={() => setCreateProjectOpen(true)}>
@@ -463,7 +528,19 @@ export default function DashboardPage() {
 
         <Card>
           <CardContent className="p-6">
-            {recentActivity.length === 0 ? (
+            {dataLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex gap-4">
+                    <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-3/4 bg-muted animate-pulse rounded" />
+                      <div className="h-3 w-1/4 bg-muted animate-pulse rounded" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : recentActivity.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">No recent activity</p>
             ) : (
               <div className="space-y-4">
