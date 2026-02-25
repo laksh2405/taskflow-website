@@ -51,6 +51,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to create session' }, { status: 400 })
   }
 
-  console.log('Sign in successful for:', email)
-  return response
+  console.log('Sign in successful for:', email, 'Session expires:', data.session.expires_at)
+
+  // Return session info so client can sync
+  return NextResponse.json({
+    success: true,
+    session: {
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token,
+    }
+  }, {
+    headers: response.headers,
+  })
 }

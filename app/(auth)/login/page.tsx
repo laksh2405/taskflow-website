@@ -50,6 +50,18 @@ export default function LoginPage() {
         return;
       }
 
+      // If session tokens are returned, set them in client
+      if (data.session) {
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+
+        // Set the session on the client
+        await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+      }
+
       await new Promise(resolve => setTimeout(resolve, 100));
       router.push('/dashboard');
       router.refresh();

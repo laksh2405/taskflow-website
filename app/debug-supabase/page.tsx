@@ -18,6 +18,12 @@ export default function DebugSupabasePage() {
     const supabase = createClient();
     const { data } = await supabase.auth.getSession();
     setSessionInfo(data);
+
+    // Also check localStorage
+    if (typeof window !== 'undefined') {
+      const authToken = localStorage.getItem('supabase-auth-token');
+      console.log('LocalStorage auth token:', authToken ? 'EXISTS' : 'MISSING');
+    }
   };
 
   const testConnection = async () => {

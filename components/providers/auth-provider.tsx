@@ -40,14 +40,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         checkDemoMode();
 
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        // Try to get the current session
+        let { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
-        console.log('AuthProvider initAuth:', {
+        console.log('AuthProvider initAuth (initial):', {
           hasSession: !!session,
           sessionError,
           userId: session?.user?.id,
           userEmail: session?.user?.email,
         });
+
+        // If no session, try refreshing to sync with server cookies
+        if (!session && !sessionError) {
+          console.log('No session found, attempting refresh...');
+          const { data: refreshData } = await supabase.auth.refreshSession();
+          if (refreshData?.session) {
+            session = refreshData.session;
+            console.log('Session restored from refresh');
+          }
+        }
 
         const currentUser = session?.user ?? null
         setUser(currentUser)
