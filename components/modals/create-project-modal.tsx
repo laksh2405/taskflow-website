@@ -37,11 +37,13 @@ export function CreateProjectModal({
   onOpenChange,
   onProjectCreated,
 }: CreateProjectModalProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedColor, setSelectedColor] = useState(PROJECT_COLORS[0].value);
+
+  console.log('CreateProjectModal - user:', user?.id, 'profile:', profile?.id);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

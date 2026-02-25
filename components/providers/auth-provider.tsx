@@ -45,11 +45,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(currentUser)
 
         if (currentUser) {
-          const { data: profileData } = await supabase
+          const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', currentUser.id)
             .maybeSingle()
+
+          if (profileError) {
+            console.error('Profile fetch error:', profileError)
+          }
 
           setProfile(profileData)
         }
@@ -69,11 +73,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(currentUser)
 
           if (currentUser) {
-            const { data: profileData } = await supabase
+            const { data: profileData, error: profileError } = await supabase
               .from('profiles')
               .select('*')
               .eq('id', currentUser.id)
               .maybeSingle()
+
+            if (profileError) {
+              console.error('Profile fetch error in auth state change:', profileError)
+            }
 
             setProfile(profileData)
           } else {
@@ -91,11 +99,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshProfile = async () => {
     if (!user) return;
 
-    const { data: profileData } = await supabase
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', user.id)
       .maybeSingle()
+
+    if (profileError) {
+      console.error('Profile refresh error:', profileError)
+    }
 
     setProfile(profileData)
   }
