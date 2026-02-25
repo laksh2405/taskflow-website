@@ -82,7 +82,7 @@ export default function DashboardPage() {
         .from('activity_log')
         .select(`
           *,
-          user:profiles(id, name, avatar_url)
+          user:profiles!activity_log_actor_id_fkey(id, name, avatar_url)
         `)
         .order('created_at', { ascending: false })
         .limit(8);

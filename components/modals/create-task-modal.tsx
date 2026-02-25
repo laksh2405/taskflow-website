@@ -168,15 +168,24 @@ export function CreateTaskModal({ open, onOpenChange, onTaskCreated }: CreateTas
         }).catch(err => console.warn('n8n webhook failed:', err));
       }
 
-      await supabase
-        .from('activity_log')
-        .insert({
-          user_id: user.id,
-          action: 'created',
-          entity_type: 'task',
-          entity_id: task.id,
-          metadata: { task_title: title },
-        });
+      const { data: workspaceData } = await supabase
+        .from('projects')
+        .select('workspace_id')
+        .eq('id', selectedProject)
+        .maybeSingle();
+
+      if (workspaceData) {
+        await supabase
+          .from('activity_log')
+          .insert({
+            workspace_id: workspaceData.workspace_id,
+            actor_id: user.id,
+            action: 'created',
+            entity_type: 'task',
+            entity_id: task.id,
+            metadata: { task_title: title },
+          });
+      }
 
       toast.success('Task created successfully');
 
