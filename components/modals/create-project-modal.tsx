@@ -48,7 +48,11 @@ export function CreateProjectModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    console.log('handleSubmit - user:', user);
+    console.log('handleSubmit - profile:', profile);
+
     if (!user) {
+      console.error('No user found in auth context');
       toast.error('You must be logged in to create a project');
       return;
     }
@@ -64,9 +68,17 @@ export function CreateProjectModal({
     const supabase = createClient() as any;
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      console.log('Session check:', { session: !!session, sessionError });
+
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+        throw new Error(`Session error: ${sessionError.message}`);
+      }
 
       if (!session) {
+        console.error('No active session found');
         throw new Error('No active session. Please log in again.');
       }
 

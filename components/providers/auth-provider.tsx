@@ -40,7 +40,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         checkDemoMode();
 
-        const { data: { session } } = await supabase.auth.getSession()
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+        console.log('AuthProvider initAuth:', {
+          hasSession: !!session,
+          sessionError,
+          userId: session?.user?.id,
+          userEmail: session?.user?.email,
+        });
+
         const currentUser = session?.user ?? null
         setUser(currentUser)
 
@@ -53,6 +61,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           if (profileError) {
             console.error('Profile fetch error:', profileError)
+          } else {
+            console.log('Profile loaded successfully')
           }
 
           setProfile(profileData)
